@@ -1,0 +1,6 @@
+{
+  "modules": [
+    { "id": "mathematiques", "name": "Mathématiques", "icon": "📐", "folder": "Mathematiques" },
+    { "id": "comptabilite", "name": "Comptabilité Générale", "icon": "📒", "folder": "Comptabilite" }
+  ]
+}

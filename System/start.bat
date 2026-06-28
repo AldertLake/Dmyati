@@ -1,0 +1,6 @@
+@echo off
+echo Installing dependencies (if needed)...
+call npm install
+echo Starting Dmyati local server on port 3000...
+start http://localhost:3000
+node server.js

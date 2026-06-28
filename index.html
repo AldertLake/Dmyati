@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dmyati - Modules</title>
+    <meta name="description" content="Préparez vos examens avec des exercices interactifs QCU/QCM.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <link rel="stylesheet" href="System/style.css">
+</head>
+<body>
+    <main id="app">
+
+        <!-- HOME VIEW -->
+        <section id="view-home" class="view active">
+            <div class="container">
+                <div class="home-hero">
+                    <h1 class="home-title">Plateforme d'Études</h1>
+                    <p class="home-subtitle">Sélectionnez un contenu pour commencer</p>
+                </div>
+
+
+                <div class="home-toolbar">
+                    <button id="btn-add-module" class="btn btn-primary" title="Nouveau Module">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span>Nouveau Module</span>
+                    </button>
+                    <div class="search-box">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        <input type="text" id="search-input" placeholder="Rechercher..." autocomplete="off">
+                    </div>
+                    <button id="btn-refresh" class="btn btn-outline" title="Actualiser">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                        <span>Actualiser</span>
+                    </button>
+                    <button class="theme-toggle" id="theme-toggle" title="Changer le thème">
+                        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    </button>
+                </div>
+                <div id="exercise-list" class="exercise-list"></div>
+                <div id="empty-state" class="empty-state hidden">
+                    <div class="empty-icon">📭</div>
+                    <h2>Aucun exercice trouvé</h2>
+                    <p>Ajoutez des fichiers JSON dans <code>exercices/</code> puis cliquez Actualiser.</p>
+                </div>
+                <div id="loading-state" class="loading-state hidden">
+                    <div class="spinner"></div>
+                    <p>Chargement...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXERCISE VIEW -->
+        <section id="view-exercise" class="view">
+            <div class="exercise-topbar" id="exercise-topbar">
+                <button id="btn-back" class="btn btn-ghost">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+                    <span>Retour</span>
+                </button>
+                <h2 class="topbar-title" id="topbar-title"></h2>
+                <span class="progress-label" id="progress-text">0/0</span>
+            </div>
+            <!-- Mobile tabs (hidden on desktop) -->
+            <div class="mobile-tabs" id="mobile-tabs">
+                <button class="mobile-tab" id="tab-enonce" data-panel="left">Énoncé</button>
+                <button class="mobile-tab active" id="tab-questions" data-panel="right">Questions</button>
+            </div>
+            <div id="exercise-body" class="exercise-body">
+                <!-- JS fills this dynamically with split or full layout -->
+            </div>
+        </section>
+
+        <!-- LESSON VIEW (Cours) -->
+        <section id="view-lesson" class="view">
+            <div class="exercise-topbar">
+                <button id="btn-back-lesson" class="btn btn-ghost">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+                    <span>Retour</span>
+                </button>
+                <h2 class="topbar-title" id="lesson-topbar-title"></h2>
+                <span style="width:70px"></span> <!-- spacer -->
+            </div>
+            
+            <div class="lesson-container">
+                <div id="lesson-header" class="lesson-header"></div>
+                <div id="lesson-body" class="lesson-body"></div>
+            </div>
+        </section>
+
+        <!-- RESULTS VIEW -->
+        <section id="view-results" class="view">
+            <div class="container">
+                <div id="results-content" class="results-content"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- MODAL: ADD MODULE -->
+    <div id="modal-add-module" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Créer un nouveau module</h3>
+                <button class="modal-close" id="btn-close-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="module-name">Nom du module</label>
+                    <input type="text" id="module-name" placeholder="ex: Physique Quantique" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="module-icon">Icône (Emoji)</label>
+                    <input type="text" id="module-icon" placeholder="ex: ⚛️" autocomplete="off" maxlength="5">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="btn-cancel-modal">Annuler</button>
+                <button class="btn btn-primary" id="btn-submit-modal">Créer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script type="module" src="System/js/main.js"></script>
+</body>
+</html>

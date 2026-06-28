@@ -1,0 +1,32 @@
+# Node.js
+System/node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# AI Agents Data (Optional, uncomment to keep them private)
+.agents/
+
+# User Data (Uncomment these if you want to share an empty website template without your own modules)
+Modules/*
+!Modules/modules.json
+!Modules/.gitkeep
