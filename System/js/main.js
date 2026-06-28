@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMermaid();
     loadExerciseList();
     bindGlobalEvents();
+    checkUpdate();
 });
 
 function bindGlobalEvents() {
@@ -73,4 +74,106 @@ function bindGlobalEvents() {
             btnSubmit.disabled = false;
         });
     }
+}
+
+async function checkUpdate(manual = false) {
+    try {
+        const btn = $('btn-update');
+        const btnText = $('btn-update-text');
+        
+        if (manual && btnText) {
+            btn.disabled = true;
+            btnText.textContent = "Vérification...";
+        }
+        
+        const res = await fetch('/api/update/check');
+        const data = await res.json();
+        
+        if (!data.isRepo) {
+            if (btn) btn.classList.add('hidden');
+            return;
+        }
+        
+        if (btn) {
+            btn.classList.remove('hidden');
+            btn.disabled = false;
+            
+            // Remove previous event listeners by cloning
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            const nBtn = $('btn-update');
+            const nBtnText = $('btn-update-text');
+
+            if (data.updateAvailable) {
+                nBtnText.textContent = "Mise à jour dispo";
+                nBtn.classList.remove('btn-outline');
+                nBtn.classList.add('btn-warning');
+                
+                let isConfirming = false;
+                
+                nBtn.addEventListener('click', async () => {
+                    if (!isConfirming) {
+                        isConfirming = true;
+                        nBtnText.textContent = "Mettre à jour ?";
+                        nBtn.classList.remove('btn-warning');
+                        nBtn.classList.add('btn-error');
+                        return;
+                    }
+                    
+                    // Perform update
+                    nBtn.disabled = true;
+                    nBtnText.textContent = "Téléchargement...";
+                    try {
+                        const upRes = await fetch('/api/update/apply', { method: 'POST' });
+                        const upData = await upRes.json();
+                        if (upData.success) {
+                            nBtnText.textContent = "Redémarrage...";
+                            pollServerForRestart();
+                        } else {
+                            showToast("Erreur: " + upData.error, 'error');
+                            nBtn.disabled = false;
+                            isConfirming = false;
+                            nBtnText.textContent = "Mise à jour dispo";
+                            nBtn.classList.remove('btn-error');
+                            nBtn.classList.add('btn-warning');
+                        }
+                    } catch(e) {
+                        showToast("Erreur réseau", 'error');
+                        nBtn.disabled = false;
+                    }
+                });
+            } else {
+                nBtnText.textContent = manual ? "À jour !" : "Vérifier maj";
+                nBtn.classList.remove('btn-warning', 'btn-error');
+                nBtn.classList.add('btn-outline');
+                
+                nBtn.addEventListener('click', () => {
+                    checkUpdate(true);
+                });
+            }
+        }
+    } catch (e) {
+        console.log("No update server available or error", e);
+    }
+}
+
+function pollServerForRestart() {
+    let attempts = 0;
+    const interval = setInterval(async () => {
+        attempts++;
+        if (attempts > 30) {
+            clearInterval(interval);
+            showToast("Le serveur met du temps à redémarrer. Veuillez actualiser manuellement.", "warning");
+            return;
+        }
+        try {
+            const res = await fetch('/api/modules');
+            if (res.ok) {
+                clearInterval(interval);
+                window.location.reload();
+            }
+        } catch(e) {
+            // expected to fail while server is down
+        }
+    }, 1000);
 }

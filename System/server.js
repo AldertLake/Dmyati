@@ -1,6 +1,7 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
+const { exec } = require('child_process');
 const cors = require('cors');
 
 const app = express();
@@ -128,6 +129,46 @@ app.post('/api/modules', (req, res) => {
         console.error(err);
         res.status(500).json({ error: 'Failed to create module' });
     }
+});
+
+// GET /api/update/check
+app.get('/api/update/check', (req, res) => {
+    // First, check if it's a git repo at all
+    if (!fs.existsSync(path.join(projectRoot, '.git'))) {
+        return res.json({ isRepo: false, updateAvailable: false });
+    }
+
+    exec('git fetch origin', { cwd: projectRoot }, (error) => {
+        if (error) {
+            return res.json({ isRepo: true, updateAvailable: false, error: 'Git fetch failed' });
+        }
+        exec('git status -sb', { cwd: projectRoot }, (err, stdout) => {
+            if (err) {
+                return res.json({ isRepo: true, updateAvailable: false, error: 'Git status failed' });
+            }
+            // Output looks like: ## main...origin/main [behind 1]
+            if (stdout.includes('[behind')) {
+                return res.json({ isRepo: true, updateAvailable: true });
+            }
+            res.json({ isRepo: true, updateAvailable: false });
+        });
+    });
+});
+
+// POST /api/update/apply
+app.post('/api/update/apply', (req, res) => {
+    exec('git pull origin main', { cwd: projectRoot }, (error, stdout) => {
+        if (error) {
+            return res.status(500).json({ error: 'Git pull failed', details: error.message });
+        }
+        res.json({ success: true, message: 'Update applied. Restarting server...' });
+        
+        // Let the response send, then exit with code 42 to trigger our start.bat loop
+        setTimeout(() => {
+            console.log('Update applied, exiting process with code 42 to trigger restart.');
+            process.exit(42);
+        }, 1000);
+    });
 });
 
 app.listen(PORT, () => {

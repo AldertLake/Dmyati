@@ -548,8 +548,12 @@ body {
 .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
 .btn-primary:disabled:hover { background: var(--accent); transform: none; }
 
-.btn-outline { background: transparent; border-color: var(--border); }
-.btn-outline:hover { background: rgba(255,255,255,0.04); }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-primary); }
+.btn-outline:hover { background: rgba(255,255,255,0.04); border-color: var(--border-hover); }
+.btn-error { background: var(--error); color: #fff; border: 1px solid var(--error-border); }
+.btn-error:hover { opacity: 0.9; }
+.btn-warning { background: var(--warning); color: #000; border: 1px solid var(--warning); }
+.btn-warning:hover { opacity: 0.9; }
 
 .btn-ghost { background: transparent; border-color: transparent; color: var(--text-secondary); }
 .btn-ghost:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
