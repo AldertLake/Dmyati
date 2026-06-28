@@ -7,11 +7,11 @@ export async function fetchModules() {
     return r.json();
 }
 
-export async function createModule(name, icon) {
+export async function createModule(name, icon, info = '') {
     const r = await fetch('/api/modules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, icon })
+        body: JSON.stringify({ name, icon, info })
     });
     if (!r.ok) throw new Error('Erreur API');
     return r.json();
@@ -38,5 +38,68 @@ export async function fetchExerciseData(folder, file) {
 export async function fetchLessonData(folder, file) {
     const r = await fetch(`Modules/${folder}/Cour/${file}?t=` + Date.now());
     if (!r.ok) throw new Error(r.status);
+    return r.json();
+}
+export async function updateModule(folder, name, icon) {
+    const r = await fetch(`/api/modules/${folder}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, icon })
+    });
+    if (!r.ok) throw new Error('Erreur API');
+    return r.json();
+}
+
+export async function deleteModule(folder) {
+    const r = await fetch(`/api/modules/${folder}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error('Erreur API');
+    return r.json();
+}
+
+export async function fetchModuleInfo(folder) {
+    const r = await fetch(`/api/modules/${folder}/info?t=` + Date.now());
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+}
+
+export async function updateModuleInfo(folder, info) {
+    const r = await fetch(`/api/modules/${folder}/info`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ info })
+    });
+    if (!r.ok) throw new Error('Erreur API');
+    return r.json();
+}
+
+export async function fetchSettings() {
+    const r = await fetch('/api/settings?t=' + Date.now());
+    if (!r.ok) return {};
+    return r.json();
+}
+
+export async function updateSettings(settings) {
+    const r = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+    });
+    if (!r.ok) throw new Error('Erreur API');
+    return r.json();
+}
+
+export async function fetchObjectives() {
+    const r = await fetch('/api/objectives?t=' + Date.now());
+    if (!r.ok) return [];
+    return r.json();
+}
+
+export async function updateObjectives(obs) {
+    const r = await fetch('/api/objectives', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(obs)
+    });
+    if (!r.ok) throw new Error('Erreur API');
     return r.json();
 }

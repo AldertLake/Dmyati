@@ -69,7 +69,7 @@ app.get('/api/modules', (req, res) => {
 // POST /api/modules
 app.post('/api/modules', (req, res) => {
     try {
-        const { name, icon } = req.body;
+        const { name, icon, info } = req.body;
         if (!name) return res.status(400).json({ error: 'Name is required' });
 
         const folderName = sanitizeFolderName(name) || 'NouveauModule';
@@ -123,6 +123,11 @@ app.post('/api/modules', (req, res) => {
             fs.cpSync(templateAgentsPath, destAgentsPath, { recursive: true });
         }
 
+        // Write custom info.txt if provided
+        if (info && info.trim().length > 0) {
+            fs.writeFileSync(path.join(modPath, 'info.txt'), info.trim(), 'utf8');
+        }
+
         res.json({ success: true, module: newModule });
 
     } catch (err) {
@@ -169,6 +174,157 @@ app.post('/api/update/apply', (req, res) => {
             process.exit(42);
         }, 1000);
     });
+});
+
+// PUT /api/modules/:folder
+app.put('/api/modules/:folder', (req, res) => {
+    try {
+        const { folder } = req.params;
+        const { name, icon } = req.body;
+        
+        let data = JSON.parse(fs.readFileSync(modulesFilePath, 'utf8'));
+        const moduleIndex = data.modules.findIndex(m => m.folder === folder);
+        if (moduleIndex === -1) return res.status(404).json({ error: 'Module not found' });
+        
+        if (name) data.modules[moduleIndex].name = name;
+        if (icon !== undefined) data.modules[moduleIndex].icon = icon;
+        
+        fs.writeFileSync(modulesFilePath, JSON.stringify(data, null, 2), 'utf8');
+        res.json({ success: true, module: data.modules[moduleIndex] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to update module' });
+    }
+});
+
+// DELETE /api/modules/:folder
+app.delete('/api/modules/:folder', (req, res) => {
+    try {
+        const { folder } = req.params;
+        let data = JSON.parse(fs.readFileSync(modulesFilePath, 'utf8'));
+        const initialLength = data.modules.length;
+        data.modules = data.modules.filter(m => m.folder !== folder);
+        
+        if (data.modules.length === initialLength) {
+            return res.status(404).json({ error: 'Module not found' });
+        }
+        
+        fs.writeFileSync(modulesFilePath, JSON.stringify(data, null, 2), 'utf8');
+        
+        const modPath = path.join(projectRoot, 'Modules', folder);
+        if (fs.existsSync(modPath)) {
+            fs.rmSync(modPath, { recursive: true, force: true });
+        }
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to delete module' });
+    }
+});
+
+// GET /api/modules/:folder/info
+app.get('/api/modules/:folder/info', (req, res) => {
+    try {
+        const infoPath = path.join(projectRoot, 'Modules', req.params.folder, 'info.txt');
+        if (fs.existsSync(infoPath)) {
+            const info = fs.readFileSync(infoPath, 'utf8');
+            res.json({ info });
+        } else {
+            res.json({ info: '' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to read info' });
+    }
+});
+
+// PUT /api/modules/:folder/info
+app.put('/api/modules/:folder/info', (req, res) => {
+    try {
+        const { info } = req.body;
+        const infoPath = path.join(projectRoot, 'Modules', req.params.folder, 'info.txt');
+        if (info && info.trim().length > 0) {
+            fs.writeFileSync(infoPath, info.trim(), 'utf8');
+        } else {
+            if (fs.existsSync(infoPath)) fs.unlinkSync(infoPath);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to write info' });
+    }
+});
+// GET /api/settings
+app.get('/api/settings', (req, res) => {
+    try {
+        const settingsPath = path.join(__dirname, 'settings.json');
+        if (fs.existsSync(settingsPath)) {
+            const data = fs.readFileSync(settingsPath, 'utf8');
+            res.json(JSON.parse(data));
+        } else {
+            res.json({}); // default empty settings
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to read settings' });
+    }
+});
+
+// POST /api/settings
+app.post('/api/settings', (req, res) => {
+    try {
+        const settingsPath = path.join(__dirname, 'settings.json');
+        fs.writeFileSync(settingsPath, JSON.stringify(req.body, null, 4), 'utf8');
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to save settings' });
+    }
+});
+
+// GET /api/objectives
+app.get('/api/objectives', (req, res) => {
+    try {
+        const obsPath = path.join(__dirname, 'objectives.json');
+        if (fs.existsSync(obsPath)) {
+            const data = fs.readFileSync(obsPath, 'utf8');
+            res.json(JSON.parse(data));
+        } else {
+            res.json([]); // default empty array
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to read objectives' });
+    }
+});
+
+// POST /api/objectives
+app.post('/api/objectives', (req, res) => {
+    try {
+        const obsPath = path.join(__dirname, 'objectives.json');
+        fs.writeFileSync(obsPath, JSON.stringify(req.body, null, 4), 'utf8');
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to save objectives' });
+    }
+});
+
+// --- HOT RELOADING (SSE) ---
+let sseClients = [];
+
+app.get('/api/sse', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    sseClients.push(res);
+    req.on('close', () => {
+        sseClients = sseClients.filter(client => client !== res);
+    });
+});
+
+app.post('/api/refresh', (req, res) => {
+    sseClients.forEach(client => {
+        client.write(`data: ${JSON.stringify({ type: 'refresh' })}\n\n`);
+    });
+    res.json({ success: true, notified: sseClients.length });
 });
 
 app.listen(PORT, () => {

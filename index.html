@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dmyati - Modules</title>
+    <title>Dmiati</title>
+    <link rel="icon" type="image/svg+xml" href="System/images/Demiati.svg">
     <meta name="description" content="Préparez vos examens avec des exercices interactifs QCU/QCM.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,8 +19,9 @@
         <section id="view-home" class="view active">
             <div class="container">
                 <div class="home-hero">
-                    <h1 class="home-title">Plateforme d'Études</h1>
+                    <img src="System/images/Demiati.svg" alt="DMYATI" class="home-logo">
                     <p class="home-subtitle">Sélectionnez un contenu pour commencer</p>
+                    <div id="exam-reminder-container" class="exam-reminder hidden"></div>
                 </div>
 
 
@@ -35,14 +37,12 @@
                     <button id="btn-refresh" class="btn btn-outline" title="Actualiser">
                         <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
                     </button>
-                    <button id="btn-update" class="btn btn-primary hidden" title="Mise à jour disponible">
-                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        <span id="btn-update-text">Mise à jour</span>
-                    </button>
-                    <button class="theme-toggle" id="theme-toggle" title="Changer le thème">
-                        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                    </button>
+                    <div class="settings-wrapper">
+                        <button id="btn-settings" class="btn btn-outline" title="Paramètres">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+                        </button>
+                        <svg id="settings-update-warning" class="warning-badge hidden" viewBox="0 0 24 24" fill="var(--error)" stroke="var(--bg-panel)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
                 </div>
                 <div id="exercise-list" class="exercise-list"></div>
                 <div id="empty-state" class="empty-state hidden">
@@ -53,6 +53,10 @@
                 <div id="loading-state" class="loading-state hidden">
                     <div class="spinner"></div>
                     <p>Chargement...</p>
+                </div>
+                <div class="hint-text">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hint-icon"><rect x="5" y="2" width="14" height="20" rx="7"/><path d="M12 2v6"/><path d="M12 8h7"/></svg>
+                    Faites un clic droit sur un module pour plus d'options
                 </div>
             </div>
         </section>
@@ -65,6 +69,7 @@
                     <span>Retour</span>
                 </button>
                 <h2 class="topbar-title" id="topbar-title"></h2>
+                <div class="study-chrono hidden" id="study-chrono-ex">00:00</div>
                 <span class="progress-label" id="progress-text">0/0</span>
             </div>
             <!-- Mobile tabs (hidden on desktop) -->
@@ -85,6 +90,7 @@
                     <span>Retour</span>
                 </button>
                 <h2 class="topbar-title" id="lesson-topbar-title"></h2>
+                <div class="study-chrono hidden" id="study-chrono-ls">00:00</div>
                 <span style="width:70px"></span> <!-- spacer -->
             </div>
             
@@ -122,12 +128,203 @@
                     <label for="module-icon">Icône (Emoji)</label>
                     <input type="text" id="module-icon" placeholder="ex: ⚛️" autocomplete="off" maxlength="5">
                 </div>
+                <div class="form-group">
+                    <label for="module-info">Instructions pour l'IA (Optionnel)</label>
+                    <textarea id="module-info" placeholder="Règles personnalisées pour l'agent de ce module..." rows="3"></textarea>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-ghost" id="btn-cancel-modal">Annuler</button>
                 <button class="btn btn-primary" id="btn-submit-modal">Créer</button>
             </div>
         </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="module-context-menu" class="context-menu hidden">
+        <button id="ctx-rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Renommer</button>
+        <button id="ctx-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Modifier Instructions</button>
+        <div class="context-divider"></div>
+        <button id="ctx-delete" class="danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>Supprimer</button>
+    </div>
+
+    <!-- Rename Modal -->
+    <div id="modal-rename-module" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Renommer Module</h3>
+                <button class="modal-close" id="btn-close-rename-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="rename-folder">
+                <div class="form-group">
+                    <label for="rename-name">Nom du module</label>
+                    <input type="text" id="rename-name" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="rename-icon">Icône (Emoji)</label>
+                    <input type="text" id="rename-icon" autocomplete="off" maxlength="5">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="btn-cancel-rename-modal">Annuler</button>
+                <button class="btn btn-primary" id="btn-submit-rename-modal">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Info Modal -->
+    <div id="modal-edit-info" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Instructions pour l'IA</h3>
+                <button class="modal-close" id="btn-close-info-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="info-folder">
+                <div class="form-group">
+                    <label>Règles personnalisées (info.txt)</label>
+                    <textarea id="edit-info-text" rows="8"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="btn-cancel-info-modal">Annuler</button>
+                <button class="btn btn-primary" id="btn-submit-info-modal">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="modal-overlay hidden">
+        <div class="modal-container" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>Paramètres</h3>
+                <button class="modal-close" id="btn-close-settings-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body settings-body" style="display: flex; gap: 24px;">
+                <div style="flex: 1;">
+                    <div class="settings-section">
+                    <h4>Apparence</h4>
+                    <div class="settings-row">
+                        <span>Mode Sombre / Clair</span>
+                        <button class="theme-toggle" id="theme-toggle" title="Changer le thème">
+                            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h4>Traduction Automatique</h4>
+                    <div class="settings-row">
+                        <span>Activer la traduction</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="setting-translate-enable" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="settings-row">
+                        <span>Langue Cible</span>
+                        <select id="setting-translate-lang" class="settings-select">
+                            <option value="fr">Français</option>
+                            <option value="en">Anglais</option>
+                            <option value="ar">Arabe</option>
+                            <option value="es">Espagnol</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4>Rappel d'Examen</h4>
+                    <div class="settings-row">
+                        <span>Activer le rappel</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="setting-exam-enable">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="settings-row">
+                        <span>Date de l'examen</span>
+                        <input type="date" id="setting-exam-date" class="settings-input">
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4>Système</h4>
+                    <div class="settings-row" style="justify-content: center; margin-top: 10px;">
+                        <button id="btn-update" class="btn btn-primary" style="width: 100%; display: flex; justify-content: center;">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <span id="btn-update-text">Vérifier les mises à jour</span>
+                        </button>
+                    </div>
+                </div>
+                </div>
+                
+                <div style="flex: 1; border-left: 1px solid var(--border); padding-left: 24px;">
+                    <div class="settings-section">
+                        <h4>Raccourcis Clavier</h4>
+                        <div class="shortcut-list" style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 14px; color: var(--text-primary);">Ouvrir les Objectifs</span>
+                                <kbd style="background: var(--bg-hover); padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; border: 1px solid var(--border); color: var(--accent);">Shift + O</kbd>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 14px; color: var(--text-primary);">Lancer Chrono d'Étude</span>
+                                <kbd style="background: var(--bg-hover); padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; border: 1px solid var(--border); color: var(--accent);">Shift + C</kbd>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 14px; color: var(--text-primary);">Pause Chrono</span>
+                                <kbd style="background: var(--bg-hover); padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; border: 1px solid var(--border); color: var(--accent);">Shift + P</kbd>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: OBJECTIVES -->
+    <div id="modal-objectives" class="modal-overlay hidden">
+        <div class="modal-container" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 style="display: flex; align-items: center; gap: 8px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    Mes Objectifs
+                </h3>
+                <div style="display: flex; gap: 8px;">
+                    <button class="modal-close" id="btn-close-objectives">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="objectives-add-bar" style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <input type="text" id="objectives-new-input" class="settings-input" style="flex: 1;" placeholder="Nouvel objectif..." autocomplete="off">
+                    <button id="btn-add-objective" class="btn btn-primary" style="padding: 6px 12px;">Ajouter</button>
+                </div>
+                <div id="objectives-list" class="objectives-list">
+                    <!-- Items rendered via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Translation Tooltip -->
+    <button id="translate-trigger-btn" class="translate-btn hidden" title="Traduire">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+    </button>
+    <div id="translate-tooltip" class="translate-tooltip hidden">
+        <div class="translate-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="translate-icon-small"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+            <span class="translate-lang-label">Traduction</span>
+        </div>
+        <div id="translate-content" class="translate-content"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>

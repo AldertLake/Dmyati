@@ -7,5 +7,6 @@ export const state = {
     userAnswers: {},
     currentQIndex: 0,
     currentView: 'home',
+    currentViewData: null,
     chartInstances: [],
 };

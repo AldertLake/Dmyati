@@ -54,8 +54,22 @@ export async function loadExerciseList(isRefresh) {
         if (loading) loading.classList.add('hidden');
 
         if (allExercises.length === 0 && allLessons.length === 0 && empty) {
+            if (state.modules.length === 0) {
+                empty.innerHTML = `
+                    <div class="empty-icon">📂</div>
+                    <h2>Aucun module trouvé</h2>
+                    <p>Cliquez sur "Nouveau Module" pour commencer votre bibliothèque.</p>
+                `;
+            } else {
+                empty.innerHTML = `
+                    <div class="empty-icon">📭</div>
+                    <h2>Aucun contenu trouvé</h2>
+                    <p>Aucun exercice ni cours n'a été généré dans vos modules.</p>
+                `;
+            }
             empty.classList.remove('hidden');
         } else {
+            if (empty) empty.classList.add('hidden');
             renderModules(allExercises, allLessons);
             if (isRefresh) showToast('Liste actualisée', 'success');
         }
@@ -79,6 +93,11 @@ export function filterExercises(q) {
     const empty = $('empty-state');
     if (filteredEx.length === 0 && filteredLs.length === 0 && q && empty) {
         $('exercise-list').innerHTML = '';
+        empty.innerHTML = `
+            <div class="empty-icon">🔍</div>
+            <h2>Aucun résultat</h2>
+            <p>Aucun contenu ne correspond à "${q}".</p>
+        `;
         empty.classList.remove('hidden');
     } else {
         if (empty) empty.classList.add('hidden');
@@ -95,6 +114,7 @@ export function renderModules(exercises, lessons, autoExpand = false) {
     
     state.modules.forEach(mod => {
         groups[mod.name] = { 
+            folder: mod.folder,
             icon: mod.icon || '📝', 
             sourceCount: mod.sourceCount || 0,
             folderExists: mod.folderExists !== false,
@@ -164,6 +184,18 @@ export function renderModules(exercises, lessons, autoExpand = false) {
             header.classList.toggle('open');
             content.style.display = header.classList.contains('open') ? 'block' : 'none';
         });
+
+        // Add context menu listener
+        header.addEventListener('contextmenu', (e) => {
+            if (grp.folder) {
+                e.preventDefault();
+                // Dispatch custom event to main.js
+                document.dispatchEvent(new CustomEvent('moduleContextMenu', { 
+                    detail: { x: e.pageX, y: e.pageY, folder: grp.folder, name: mName, icon: grp.icon }
+                }));
+            }
+        });
+
         if (autoExpand) header.classList.add('open');
 
         // Render lessons list

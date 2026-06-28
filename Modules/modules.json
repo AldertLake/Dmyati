@@ -1,6 +1,16 @@
 {
   "modules": [
-    { "id": "mathematiques", "name": "Mathématiques", "icon": "📐", "folder": "Mathematiques" },
-    { "id": "comptabilite", "name": "Comptabilité Générale", "icon": "📒", "folder": "Comptabilite" }
+    {
+      "id": "microeconomie",
+      "name": "Microéconomie",
+      "icon": "📐",
+      "folder": "Microeconomie"
+    },
+    {
+      "id": "compatibilite",
+      "name": "Compatibilité",
+      "icon": "👨‍🔬",
+      "folder": "Compatibilite"
+    }
   ]
 }

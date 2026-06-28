@@ -2,10 +2,12 @@ import { $, esc, showToast } from './utils.js';
 import { fetchLessonData } from './api.js';
 import { renderContentBlock, renderAllMath, renderMermaidBlocks, renderCharts } from './renderer.js';
 import { showView } from './ui.js';
+import { state } from './state.js';
 
 export async function openLesson(ex) {
     try {
         const data = await fetchLessonData(ex.moduleFolder, ex.file);
+        state.currentViewData = { type: 'lesson', data: ex };
         renderLesson(data);
         showView('lesson');
     } catch (e) {

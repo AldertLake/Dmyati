@@ -9,6 +9,7 @@ export async function openExercise(ex) {
     try {
         const data = await fetchExerciseData(ex.moduleFolder, ex.file);
         state.currentExercise = data;
+        state.currentViewData = { type: 'exercise', data: ex };
         state.userAnswers = {};
         state.currentQIndex = 0;
         renderExercise(data);
