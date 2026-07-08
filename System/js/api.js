@@ -7,6 +7,22 @@ export async function fetchModules() {
     return r.json();
 }
 
+export async function fetchProgress() {
+    const r = await fetch('/api/progress?t=' + Date.now());
+    if (!r.ok) return {};
+    return r.json();
+}
+
+export async function saveProgress(progress) {
+    const r = await fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(progress)
+    });
+    if (!r.ok) throw new Error('Erreur API');
+    return r.json();
+}
+
 export async function createModule(name, icon, info = '') {
     const r = await fetch('/api/modules', {
         method: 'POST',

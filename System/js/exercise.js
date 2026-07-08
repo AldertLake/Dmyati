@@ -10,8 +10,24 @@ export async function openExercise(ex) {
         const data = await fetchExerciseData(ex.moduleFolder, ex.file);
         state.currentExercise = data;
         state.currentViewData = { type: 'exercise', data: ex };
-        state.userAnswers = {};
-        state.currentQIndex = 0;
+        
+        const exKey = ex.moduleFolder + '/' + ex.file;
+        const prog = state.progress && state.progress[exKey];
+        state.userAnswers = prog && prog.answers ? JSON.parse(JSON.stringify(prog.answers)) : {};
+        
+        let firstUnanswered = 0;
+        const questions = data.questions || [];
+        if (prog && prog.answers) {
+            for (let i = 0; i < questions.length; i++) {
+                const qId = questions[i].id != null ? questions[i].id : i + 1;
+                if (!state.userAnswers[qId]) {
+                    firstUnanswered = i;
+                    break;
+                }
+            }
+        }
+        
+        state.currentQIndex = prog && prog.status !== 'incomplete' ? 0 : firstUnanswered;
         renderExercise(data);
         showView('exercise');
     } catch (e) {
@@ -29,7 +45,7 @@ function renderExercise(data) {
     // Topbar title
     $('topbar-title').textContent = data.title || 'Exercice';
 
-    const hasEnonce = data.enonce && data.enonce.length > 0;
+    const hasEnonce = (data.enonce && data.enonce.length > 0) || (data.cases && data.cases.length > 0);
     const questions = data.questions || [];
 
     // Mobile tabs visibility
@@ -51,12 +67,48 @@ function renderExercise(data) {
         left.id = 'split-left';
         left.style.width = '50%';
 
-        const label = document.createElement('div');
-        label.className = 'enonce-label';
-        label.textContent = 'Énoncé';
-        left.appendChild(label);
+        if (data.enonce) {
+            data.enonce.forEach((block) => left.appendChild(renderContentBlock(block)));
+        }
+        // Highly distinct cold colors
+        const COLD_COLORS = [
+            '#2563eb', // Deep Blue
+            '#06b6d4', // Bright Cyan
+            '#10b981', // Emerald Green
+            '#8b5cf6', // Vivid Violet
+            '#64748b'  // Slate Gray
+        ];
+        let availableColors = [...COLD_COLORS].sort(() => Math.random() - 0.5);
 
-        data.enonce.forEach((block) => left.appendChild(renderContentBlock(block)));
+        if (data.cases) {
+            data.cases.forEach((caseData, idx) => {
+                if (!caseData.color) {
+                    caseData.color = availableColors.pop() || COLD_COLORS[idx % COLD_COLORS.length];
+                }
+                
+                const parts = (caseData.title || caseData.id).split(':');
+                const shortTitle = parts[0].trim();
+                const actualTitle = parts.slice(1).join(':').trim();
+                
+                const caseContainer = document.createElement('div');
+                caseContainer.className = 'case-container';
+                
+                const header = document.createElement('div');
+                header.className = 'case-header-static';
+                
+                let html = `<span class="q-case-badge enonce-badge" style="color: ${caseData.color}; background: ${caseData.color}26; border: 1px solid ${caseData.color}4d;">${esc(shortTitle)}</span>`;
+                if (actualTitle) {
+                    html += `<span class="q-case-badge enonce-badge" style="color: var(--text-secondary); background: var(--bg-elevated); border: 1px solid var(--border); text-transform: none; letter-spacing: normal;">${esc(actualTitle)}</span>`;
+                }
+                header.innerHTML = html;
+                
+                caseContainer.appendChild(header);
+                
+                (caseData.content || []).forEach(b => caseContainer.appendChild(renderContentBlock(b)));
+                
+                left.appendChild(caseContainer);
+            });
+        }
         body.appendChild(left);
 
         // Divider
@@ -100,6 +152,13 @@ function createQuestionsPanel(questions) {
         dot.className = 'q-dot';
         dot.dataset.index = i;
         dot.title = 'Question ' + (q.id != null ? q.id : i + 1);
+        if (q.caseId && state.currentExercise && state.currentExercise.cases) {
+            const cObj = state.currentExercise.cases.find(c => c.id === q.caseId);
+            if (cObj && cObj.color) {
+                dot.style.setProperty('--case-color', cObj.color);
+                dot.style.setProperty('--case-color-alpha', cObj.color + '40'); // 25% opacity for glow
+            }
+        }
         dot.addEventListener('click', () => showQuestion(i));
         dots.appendChild(dot);
     });
@@ -125,18 +184,19 @@ function createQuestionsPanel(questions) {
     `;
     panel.appendChild(nav);
 
-    const submitArea = document.createElement('div');
-    submitArea.className = 'question-actions';
-    submitArea.innerHTML = '<button class="btn btn-primary btn-lg" id="btn-submit" disabled>Soumettre les réponses</button>';
-    panel.appendChild(submitArea);
+
 
     setTimeout(() => {
         const prevBtn = $('btn-prev');
         const nextBtn = $('btn-next');
-        const submitBtn = $('btn-submit');
         if (prevBtn) prevBtn.addEventListener('click', () => showQuestion(state.currentQIndex - 1));
-        if (nextBtn) nextBtn.addEventListener('click', () => showQuestion(state.currentQIndex + 1));
-        if (submitBtn) submitBtn.addEventListener('click', handleSubmit);
+        if (nextBtn) nextBtn.addEventListener('click', () => {
+            if (state.currentQIndex === state.currentExercise.questions.length - 1) {
+                handleSubmit();
+            } else {
+                showQuestion(state.currentQIndex + 1);
+            }
+        });
     }, 0);
 
     return panel;
@@ -179,9 +239,19 @@ function showQuestion(index, direction) {
         `;
     }
 
+    let badgeHtml = '';
+    if (q.caseId && state.currentExercise.cases) {
+        const caseObj = state.currentExercise.cases.find(c => c.id === q.caseId);
+        if (caseObj) {
+            const shortTitle = (caseObj.title || caseObj.id).split(':')[0].trim();
+            const color = caseObj.color || '#6366f1';
+            badgeHtml = `<span class="q-case-badge" style="color: ${color}; background: ${color}26; border-color: ${color}4d;">${esc(shortTitle)}</span>`;
+        }
+    }
+
     let html = `
         <div class="question-top">
-            <span class="question-badge ${isQCM ? 'qcm' : 'qcu'}">Q${qId} - ${isQCM ? 'QCM' : 'QCU'}</span>
+            ${badgeHtml}<span class="question-badge ${isQCM ? 'qcm' : 'qcu'}">Q${qId} - ${isQCM ? 'QCM' : 'QCU'}</span>
         </div>
         <div class="question-text">${parseMd(q.text || '')}</div>
         ${hintHtml}
@@ -228,7 +298,18 @@ function showQuestion(index, direction) {
     const prevBtn = $('btn-prev');
     const nextBtn = $('btn-next');
     if (prevBtn) prevBtn.disabled = index === 0;
-    if (nextBtn) nextBtn.disabled = index === questions.length - 1;
+    if (nextBtn) {
+        if (index === questions.length - 1) {
+            nextBtn.innerHTML = `Soumettre <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>`;
+            nextBtn.classList.remove('btn-ghost');
+            nextBtn.classList.add('btn-primary');
+        } else {
+            nextBtn.innerHTML = `Suivant <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>`;
+            nextBtn.classList.remove('btn-primary');
+            nextBtn.classList.add('btn-ghost');
+            nextBtn.disabled = false;
+        }
+    }
 
     updateProgress();
 }
@@ -239,8 +320,10 @@ function updateDots() {
     dots.forEach((dot, i) => {
         const q = questions[i];
         const qId = q.id != null ? q.id : i + 1;
+        const isAnswered = !!state.userAnswers[qId];
         dot.classList.toggle('current', i === state.currentQIndex);
-        dot.classList.toggle('answered', !!state.userAnswers[qId]);
+        dot.classList.toggle('answered', isAnswered);
+        dot.classList.toggle('skipped', !isAnswered && i < state.currentQIndex);
     });
 }
 
@@ -271,6 +354,16 @@ function handleOptionClick(el, qId, isQCM) {
 
     updateDots();
     updateProgress();
+    
+    // Save partial progress
+    const ex = state.currentViewData.data;
+    const exKey = ex.moduleFolder + '/' + ex.file;
+    if (!state.progress) state.progress = {};
+    state.progress[exKey] = {
+        status: 'incomplete',
+        answers: JSON.parse(JSON.stringify(state.userAnswers))
+    };
+    import('./api.js').then(api => api.saveProgress(state.progress)).catch(console.error);
 }
 
 function updateProgress() {
@@ -279,8 +372,10 @@ function updateProgress() {
     const answered = Object.keys(state.userAnswers).length;
     $('progress-text').textContent = answered + ' / ' + total + ' répondu(s)';
 
-    const submitBtn = $('btn-submit');
-    if (submitBtn) submitBtn.disabled = answered === 0;
+    const nextBtn = $('btn-next');
+    if (nextBtn && state.currentQIndex === total - 1) {
+        nextBtn.disabled = answered === 0;
+    }
 }
 
 function handleSubmit() {
@@ -293,6 +388,19 @@ function handleSubmit() {
         const correctAns = (q.answer || []).slice().sort();
         if (arrEq(userAns, correctAns)) correct++;
     });
+    
+    const pct = questions.length > 0 ? (correct / questions.length) : 0;
+    const status = pct >= 0.7 ? 'passed' : 'failed';
+    
+    const ex = state.currentViewData.data;
+    const exKey = ex.moduleFolder + '/' + ex.file;
+    if (!state.progress) state.progress = {};
+    state.progress[exKey] = {
+        status: status,
+        answers: JSON.parse(JSON.stringify(state.userAnswers))
+    };
+    import('./api.js').then(api => api.saveProgress(state.progress)).catch(console.error);
+
     renderResults(correct, questions.length, questions);
     showView('results');
 }
@@ -442,3 +550,22 @@ function initSplitDrag(container, left, divider) {
     document.addEventListener('mouseup', onUp);
     document.addEventListener('touchend', onUp);
 }
+
+/* ==================== KEYBOARD NAVIGATION ==================== */
+document.addEventListener('keydown', (e) => {
+    const view = $('view-exercise');
+    if (!view || view.classList.contains('hidden')) return;
+    
+    const tagName = e.target.tagName.toLowerCase();
+    if (tagName === 'input' || tagName === 'textarea') return;
+    
+    if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prevBtn = $('btn-prev');
+        if (prevBtn && !prevBtn.disabled) prevBtn.click();
+    } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const nextBtn = $('btn-next');
+        if (nextBtn && !nextBtn.disabled) nextBtn.click();
+    }
+});

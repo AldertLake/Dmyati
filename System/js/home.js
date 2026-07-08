@@ -53,21 +53,14 @@ export async function loadExerciseList(isRefresh) {
         state.lessonList = allLessons;
         if (loading) loading.classList.add('hidden');
 
-        if (allExercises.length === 0 && allLessons.length === 0 && empty) {
-            if (state.modules.length === 0) {
-                empty.innerHTML = `
-                    <div class="empty-icon">📂</div>
-                    <h2>Aucun module trouvé</h2>
-                    <p>Cliquez sur "Nouveau Module" pour commencer votre bibliothèque.</p>
-                `;
-            } else {
-                empty.innerHTML = `
-                    <div class="empty-icon">📭</div>
-                    <h2>Aucun contenu trouvé</h2>
-                    <p>Aucun exercice ni cours n'a été généré dans vos modules.</p>
-                `;
-            }
+        if (state.modules.length === 0 && empty) {
+            empty.innerHTML = `
+                <div class="empty-icon">📂</div>
+                <h2>Aucun module trouvé</h2>
+                <p>Cliquez sur "Nouveau Module" pour commencer votre bibliothèque.</p>
+            `;
             empty.classList.remove('hidden');
+            $('exercise-list').innerHTML = '';
         } else {
             if (empty) empty.classList.add('hidden');
             renderModules(allExercises, allLessons);
@@ -212,6 +205,12 @@ export function renderModules(exercises, lessons, autoExpand = false) {
                 item.className = 'list-item';
                 item.innerHTML = `<div class="item-subject">${esc(ls.subject || 'Général')}</div><div class="item-title">${esc(ls.title)}</div>`;
                 item.addEventListener('click', () => openLesson(ls));
+                item.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    document.dispatchEvent(new CustomEvent('contentContextMenu', {
+                        detail: { x: e.pageX, y: e.pageY, moduleFolder: ls.moduleFolder, file: ls.file, type: 'Cour' }
+                    }));
+                });
                 lsList.appendChild(item);
             });
             content.appendChild(lsList);
@@ -229,8 +228,67 @@ export function renderModules(exercises, lessons, autoExpand = false) {
             grp.exercises.forEach(ex => {
                 const item = document.createElement('div');
                 item.className = 'list-item';
-                item.innerHTML = `<div class="item-subject">${esc(ex.subject || 'Général')}</div><div class="item-title">${esc(ex.title)}</div>`;
-                item.addEventListener('click', () => openExercise(ex));
+                
+                const exKey = ex.moduleFolder + '/' + ex.file;
+                const prog = state.progress[exKey];
+                let statusHtml = '';
+                if (prog) {
+                    if (prog.status === 'passed') statusHtml = '<span class="ex-status status-passed" title="Réussi">✔</span>';
+                    else if (prog.status === 'failed') statusHtml = '<span class="ex-status status-failed" title="Échoué">✖</span>';
+                    else if (prog.status === 'incomplete') statusHtml = '<span class="status-incomplete" title="En cours"></span>';
+                }
+
+                item.innerHTML = `<div class="item-subject">${esc(ex.subject || 'Général')}</div><div class="item-title">${esc(ex.title)}${statusHtml}</div>`;
+                
+                item.addEventListener('click', () => {
+                    const currentProg = state.progress[exKey];
+                    if (currentProg && (currentProg.status === 'passed' || currentProg.status === 'failed')) {
+                        const modal = document.getElementById('modal-restart-exercise');
+                        if (modal) {
+                            modal.classList.remove('hidden');
+                            
+                            const onCancel = () => {
+                                modal.classList.add('hidden');
+                                cleanup();
+                            };
+                            
+                            const onConfirm = async () => {
+                                modal.classList.add('hidden');
+                                // Delete progress
+                                delete state.progress[exKey];
+                                const { saveProgress } = await import('./api.js');
+                                await saveProgress(state.progress);
+                                
+                                // Update UI locally to remove badge
+                                item.querySelector('.ex-status')?.remove();
+                                
+                                cleanup();
+                                openExercise(ex);
+                            };
+                            
+                            const cleanup = () => {
+                                document.getElementById('btn-cancel-restart').removeEventListener('click', onCancel);
+                                document.getElementById('btn-close-restart-modal').removeEventListener('click', onCancel);
+                                document.getElementById('btn-confirm-restart').removeEventListener('click', onConfirm);
+                            };
+                            
+                            document.getElementById('btn-cancel-restart').addEventListener('click', onCancel);
+                            document.getElementById('btn-close-restart-modal').addEventListener('click', onCancel);
+                            document.getElementById('btn-confirm-restart').addEventListener('click', onConfirm);
+                        } else {
+                            openExercise(ex);
+                        }
+                    } else {
+                        openExercise(ex);
+                    }
+                });
+
+                item.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    document.dispatchEvent(new CustomEvent('contentContextMenu', {
+                        detail: { x: e.pageX, y: e.pageY, moduleFolder: ex.moduleFolder, file: ex.file, type: 'exercices' }
+                    }));
+                });
                 exList.appendChild(item);
             });
             content.appendChild(exList);

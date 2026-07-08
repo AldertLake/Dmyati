@@ -24,10 +24,43 @@ export function showToast(msg, type) {
     }, 2500);
 }
 
-export function parseMd(text) {
-    if (typeof marked !== 'undefined' && marked.parse) {
+export function parseMd(text, inline = false) {
+    if (typeof marked !== 'undefined') {
         marked.setOptions({ breaks: true, gfm: true });
-        return marked.parse(text);
+        
+        // Protect Math blocks from marked parsing (prevents escaping of LaTeX chars)
+        const mathBlocks = [];
+        let processedText = text.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\(.*?\\\))/g, (match) => {
+            mathBlocks.push(match);
+            return `@@MATH_BLOCK_${mathBlocks.length - 1}@@`;
+        });
+        
+        let html = '';
+        if (inline && marked.parseInline) {
+            html = marked.parseInline(processedText);
+        } else if (marked.parse) {
+            html = marked.parse(processedText);
+        } else {
+            html = processedText.replace(/\n/g, '<br>');
+        }
+        
+        // Wrap tables natively
+        html = html.replace(/<table(.*?)>/g, '<div class="content-table-wrapper"><table class="content-table"$1>');
+        html = html.replace(/<\/table>/g, '</table></div>');
+        
+        // Parse GitHub Alerts
+        html = html.replace(/<blockquote>\s*<p>\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\](?:<br>|\n|\s*)([\s\S]*?)<\/p>([\s\S]*?)<\/blockquote>/gi, (match, type, contentP, contentRest) => {
+            const t = type.toUpperCase();
+            const content = (contentP + contentRest).trim();
+            return `<div class="github-alert github-alert-${t.toLowerCase()}"><div class="github-alert-title">${t}</div><div class="github-alert-content">${content}</div></div>`;
+        });
+        
+        // Restore Math blocks
+        html = html.replace(/@@MATH_BLOCK_(\d+)@@/g, (match, i) => {
+            return mathBlocks[i];
+        });
+        
+        return html;
     }
     return text.replace(/\n/g, '<br>');
 }

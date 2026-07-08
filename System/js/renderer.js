@@ -17,11 +17,11 @@ export function renderContentBlock(block) {
             el.className = 'content-table-wrapper';
             let h = '<table class="content-table">';
             if (block.headers) {
-                h += '<thead><tr>' + block.headers.map((c) => '<th>' + esc(c) + '</th>').join('') + '</tr></thead>';
+                h += '<thead><tr>' + block.headers.map((c) => '<th>' + parseMd(String(c), true) + '</th>').join('') + '</tr></thead>';
             }
             if (block.rows) {
                 h += '<tbody>' + block.rows.map((row) =>
-                    '<tr>' + row.map((c) => '<td>' + esc(String(c)) + '</td>').join('') + '</tr>'
+                    '<tr>' + row.map((c) => '<td>' + parseMd(String(c), true) + '</td>').join('') + '</tr>'
                 ).join('') + '</tbody>';
             }
             h += '</table>';
@@ -134,7 +134,8 @@ export function renderCharts(container) {
             const canvas = block.querySelector('canvas');
             if (!canvas) return;
 
-            const datasets = (config.data && config.data.datasets || []).map((ds, i) => ({
+            const dataObj = config.data || { labels: config.labels, datasets: config.datasets };
+            const datasets = (dataObj.datasets || []).map((ds, i) => ({
                 ...ds,
                 backgroundColor: ds.backgroundColor || defaultColors[i % defaultColors.length] + '99',
                 borderColor: ds.borderColor || defaultColors[i % defaultColors.length],
@@ -143,7 +144,7 @@ export function renderCharts(container) {
 
             const chart = new Chart(canvas, {
                 type: config.chartType || 'bar',
-                data: { labels: config.data.labels || [], datasets: datasets },
+                data: { labels: dataObj.labels || [], datasets: datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,

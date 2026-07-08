@@ -66,6 +66,23 @@ app.get('/api/modules', (req, res) => {
     }
 });
 
+// GET /api/music
+app.get('/api/music', (req, res) => {
+    try {
+        const musicPath = path.join(projectRoot, 'Music');
+        if (!fs.existsSync(musicPath)) {
+            fs.mkdirSync(musicPath);
+            return res.json({ songs: [] });
+        }
+        const files = fs.readdirSync(musicPath);
+        const songs = files.filter(f => /\.(mp3|wav|ogg)$/i.test(f));
+        res.json({ songs });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to read music folder' });
+    }
+});
+
 // POST /api/modules
 app.post('/api/modules', (req, res) => {
     try {
@@ -166,6 +183,26 @@ app.post('/api/update/apply', (req, res) => {
         if (error) {
             return res.status(500).json({ error: 'Git pull failed', details: error.message });
         }
+        
+        // Auto-sync updated templates to all existing modules
+        try {
+            const templateAgentsPath = path.join(__dirname, 'agent_templates', '.agents');
+            const modulesDir = path.join(projectRoot, 'Modules');
+            if (fs.existsSync(templateAgentsPath) && fs.existsSync(modulesDir)) {
+                const moduleFolders = fs.readdirSync(modulesDir, { withFileTypes: true })
+                    .filter(dirent => dirent.isDirectory())
+                    .map(dirent => dirent.name);
+                
+                moduleFolders.forEach(folder => {
+                    const destAgentsPath = path.join(modulesDir, folder, '.agents');
+                    fs.cpSync(templateAgentsPath, destAgentsPath, { recursive: true, force: true });
+                });
+                console.log('Successfully synced agent templates to all modules.');
+            }
+        } catch(e) {
+            console.error('Failed to sync agent templates during update', e);
+        }
+
         res.json({ success: true, message: 'Update applied. Restarting server...' });
         
         // Let the response send, then exit with code 42 to trigger our start.bat loop
@@ -220,6 +257,63 @@ app.delete('/api/modules/:folder', (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Failed to delete module' });
+    }
+});
+
+// GET /api/progress
+const progressFilePath = path.join(__dirname, 'progress.json');
+app.get('/api/progress', (req, res) => {
+    try {
+        if (!fs.existsSync(progressFilePath)) {
+            return res.json({});
+        }
+        const data = fs.readFileSync(progressFilePath, 'utf8');
+        res.json(JSON.parse(data));
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to load progress' });
+    }
+});
+
+// POST /api/progress
+app.post('/api/progress', (req, res) => {
+    try {
+        fs.writeFileSync(progressFilePath, JSON.stringify(req.body, null, 2));
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to save progress' });
+    }
+});
+
+// DELETE /api/modules/:folder/content/:type/:file
+app.delete('/api/modules/:folder/content/:type/:file', (req, res) => {
+    try {
+        const { folder, type, file } = req.params;
+        const validTypes = ['Cour', 'exercices'];
+        if (!validTypes.includes(type)) return res.status(400).json({ error: 'Invalid type' });
+
+        const dirPath = path.join(projectRoot, 'Modules', folder, type);
+        const filePath = path.join(dirPath, file);
+        const indexPath = path.join(dirPath, 'index.json');
+
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+
+        if (fs.existsSync(indexPath)) {
+            let data = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+            const key = type === 'Cour' ? 'lessons' : 'exercises';
+            if (data[key]) {
+                data[key] = data[key].filter(item => item.file !== file);
+                fs.writeFileSync(indexPath, JSON.stringify(data, null, 2), 'utf8');
+            }
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to delete content' });
     }
 });
 

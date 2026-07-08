@@ -8,5 +8,6 @@ export const state = {
     currentQIndex: 0,
     currentView: 'home',
     currentViewData: null,
+    progress: {},
     chartInstances: [],
 };

@@ -5,11 +5,14 @@ import { initMermaid } from './renderer.js';
 import { loadExerciseList, filterExercises } from './home.js';
 import { openExercise } from './exercise.js';
 import { openLesson } from './lesson.js';
-import { createModule, updateModule, deleteModule, fetchModuleInfo, updateModuleInfo, fetchSettings, updateSettings, fetchObjectives, updateObjectives } from './api.js';
+import { createModule, updateModule, deleteModule, fetchModuleInfo, updateModuleInfo, fetchSettings, updateSettings, fetchObjectives, updateObjectives, fetchProgress } from './api.js';
+import { musicPlayer } from './music.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initTheme();
     initMermaid();
+    musicPlayer.init();
+    state.progress = await fetchProgress();
     loadExerciseList();
     bindGlobalEvents();
     checkUpdate();
@@ -38,8 +41,14 @@ document.addEventListener('DOMContentLoaded', () => {
 function bindGlobalEvents() {
     $('btn-refresh').addEventListener('click', () => loadExerciseList(true));
     $('search-input').addEventListener('input', (e) => filterExercises(e.target.value));
-    $('btn-back').addEventListener('click', () => showView('home'));
-    $('btn-back-lesson').addEventListener('click', () => showView('home'));
+    $('btn-back').addEventListener('click', () => { 
+        showView('home'); 
+        loadExerciseList(); 
+    });
+    $('btn-back-lesson').addEventListener('click', () => { 
+        showView('home'); 
+        loadExerciseList(); 
+    });
     
     // Theme toggle (now in settings)
     const tBtn = $('theme-toggle');
@@ -227,6 +236,10 @@ let activeContextFolder = null;
 let activeContextName = null;
 let activeContextIcon = null;
 
+let activeContentModule = null;
+let activeContentFile = null;
+let activeContentType = null;
+
 document.addEventListener('moduleContextMenu', (e) => {
     const { x, y, folder, name, icon } = e.detail;
     activeContextFolder = folder;
@@ -234,6 +247,24 @@ document.addEventListener('moduleContextMenu', (e) => {
     activeContextIcon = icon;
     
     const menu = $('module-context-menu');
+    const contentMenu = $('content-context-menu');
+    if (contentMenu) contentMenu.classList.add('hidden');
+    if (!menu) return;
+    
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
+    menu.classList.remove('hidden');
+});
+
+document.addEventListener('contentContextMenu', (e) => {
+    const { x, y, moduleFolder, file, type } = e.detail;
+    activeContentModule = moduleFolder;
+    activeContentFile = file;
+    activeContentType = type;
+    
+    const menu = $('content-context-menu');
+    const modMenu = $('module-context-menu');
+    if (modMenu) modMenu.classList.add('hidden');
     if (!menu) return;
     
     menu.style.left = `${x}px`;
@@ -244,10 +275,38 @@ document.addEventListener('moduleContextMenu', (e) => {
 // Hide context menu on click outside
 document.addEventListener('click', (e) => {
     const menu = $('module-context-menu');
+    const contentMenu = $('content-context-menu');
     if (menu && !menu.contains(e.target)) {
         menu.classList.add('hidden');
     }
+    if (contentMenu && !contentMenu.contains(e.target)) {
+        contentMenu.classList.add('hidden');
+    }
 });
+
+// Delete Content Event
+const btnDeleteContent = $('menu-item-delete-content');
+if (btnDeleteContent) {
+    btnDeleteContent.addEventListener('click', async () => {
+        $('content-context-menu').classList.add('hidden');
+        if (!activeContentModule || !activeContentFile || !activeContentType) return;
+        
+        if (confirm("Voulez-vous vraiment supprimer ce contenu ?")) {
+            try {
+                const res = await fetch(`/api/modules/${activeContentModule}/content/${activeContentType}/${activeContentFile}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast("Contenu supprimé", "success");
+                    loadExerciseList(true);
+                } else {
+                    showToast("Erreur lors de la suppression", "error");
+                }
+            } catch (err) {
+                showToast("Erreur de suppression", "error");
+            }
+        }
+    });
+}
 
 // Rename
 const btnCtxRename = $('ctx-rename');

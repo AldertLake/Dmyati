@@ -89,14 +89,32 @@
                     <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
                     <span>Retour</span>
                 </button>
-                <h2 class="topbar-title" id="lesson-topbar-title"></h2>
+                <div class="topbar-divider" id="lesson-topbar-divider" style="width: 1px; height: 24px; background: var(--border); margin: 0 4px; display: none;"></div>
+                <button id="btn-toggle-sidebar" class="btn btn-ghost hidden" title="Basculer le menu">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                </button>
+                <h2 class="topbar-title" id="lesson-topbar-title" style="margin-left: 8px;"></h2>
                 <div class="study-chrono hidden" id="study-chrono-ls">00:00</div>
                 <span style="width:70px"></span> <!-- spacer -->
             </div>
             
-            <div class="lesson-container">
-                <div id="lesson-header" class="lesson-header"></div>
-                <div id="lesson-body" class="lesson-body"></div>
+            <div class="lesson-wrapper">
+                <aside id="lesson-sidebar" class="lesson-sidebar hidden"></aside>
+                <div class="lesson-container">
+                    <div id="lesson-header" class="lesson-header"></div>
+                    <div id="lesson-body" class="lesson-body"></div>
+                </div>
+            </div>
+
+            <!-- Floating Zoom Controls -->
+            <div class="zoom-controls">
+                <button id="btn-zoom-out" class="btn-zoom" title="Réduire">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <div id="zoom-level">100%</div>
+                <button id="btn-zoom-in" class="btn-zoom" title="Agrandir">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
             </div>
         </section>
 
@@ -136,6 +154,25 @@
             <div class="modal-footer">
                 <button class="btn btn-ghost" id="btn-cancel-modal">Annuler</button>
                 <button class="btn btn-primary" id="btn-submit-modal">Créer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: RESTART EXERCISE -->
+    <div id="modal-restart-exercise" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Réinitialiser l'exercice ?</h3>
+                <button class="modal-close" id="btn-close-restart-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Vous avez déjà répondu à cet exercice. Voulez-vous recommencer depuis le début et effacer votre progression ?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="btn-cancel-restart">Annuler</button>
+                <button class="btn btn-primary" id="btn-confirm-restart" style="background: var(--error); border-color: var(--error);">Recommencer</button>
             </div>
         </div>
     </div>
@@ -199,6 +236,16 @@
     </div>
 
     <!-- Settings Modal -->
+
+
+        <!-- Content Context Menu -->
+        <div id="content-context-menu" class="context-menu hidden">
+            <div class="menu-item text-error" id="menu-item-delete-content">
+                <span class="menu-icon">🗑️</span>
+                <span>Supprimer</span>
+            </div>
+        </div>
+
     <div id="modal-settings" class="modal-overlay hidden">
         <div class="modal-container" style="max-width: 700px;">
             <div class="modal-header">
@@ -282,6 +329,10 @@
                                 <span style="font-size: 14px; color: var(--text-primary);">Pause Chrono</span>
                                 <kbd style="background: var(--bg-hover); padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; border: 1px solid var(--border); color: var(--accent);">Shift + P</kbd>
                             </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 14px; color: var(--text-primary);">Lecteur de Musique</span>
+                                <kbd style="background: var(--bg-hover); padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; border: 1px solid var(--border); color: var(--accent);">Shift + M</kbd>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -325,6 +376,35 @@
             <span class="translate-lang-label">Traduction</span>
         </div>
         <div id="translate-content" class="translate-content"></div>
+    </div>
+
+    <!-- Mini Music Player -->
+    <div id="music-player" class="music-player hidden">
+        <div class="music-player-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="music-player-icon"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+            <span class="music-player-title" id="music-player-title">Aucune piste</span>
+            <button id="music-btn-close" class="music-btn-icon" title="Cacher (Shift+M)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="music-player-controls">
+            <button id="music-btn-prev" class="music-btn-icon" title="Précédent">
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+            </button>
+            <button id="music-btn-play" class="music-btn-icon music-btn-play" title="Lecture/Pause">
+                <svg id="music-icon-play" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <svg id="music-icon-pause" class="hidden" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+            </button>
+            <button id="music-btn-next" class="music-btn-icon" title="Suivant">
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+            </button>
+            <button id="music-btn-loop" class="music-btn-icon" title="Répéter">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+            </button>
+        </div>
+        <div class="music-player-progress-container" id="music-progress-container">
+            <div id="music-progress-bar" class="music-progress-bar"></div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
