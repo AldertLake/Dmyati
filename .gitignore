@@ -28,5 +28,5 @@ Desktop.ini
 
 # User Data (Uncomment these if you want to share an empty website template without your own modules)
 Modules/*
-!Modules/modules.json
+# !Modules/modules.json
 !Modules/.gitkeep
