@@ -1,4 +1,6 @@
 @echo off
+echo Checking for updates...
+git pull
 cd System
 echo Installing dependencies (if needed)...
 call npm install

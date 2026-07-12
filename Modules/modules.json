@@ -13,22 +13,10 @@
       "folder": "StatistiqueDescriptive"
     },
     {
-      "id": "comptabilite",
-      "name": "Comptabilité",
-      "icon": "🔢",
-      "folder": "Comptabilite"
-    },
-    {
       "id": "mathematique",
       "name": "Mathematique",
       "icon": "🔬",
       "folder": "Mathematique"
-    },
-    {
-      "id": "macroeconomie",
-      "name": "Macroéconomie",
-      "icon": "🥀",
-      "folder": "Macroeconomie"
     }
   ]
 }

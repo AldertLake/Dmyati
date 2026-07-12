@@ -89,7 +89,7 @@
     }
   },
   "Macroeconomie/rattrapage-macro-2025.json": {
-    "status": "incomplete",
+    "status": "passed",
     "answers": {
       "1": [
         "A"
@@ -120,6 +120,114 @@
       ],
       "10": [
         "C"
+      ],
+      "11": [
+        "A"
+      ]
+    }
+  },
+  "Macroeconomie/ultimate-macro-ch1-ch2.json": {
+    "status": "failed",
+    "answers": {
+      "1": [
+        "A"
+      ],
+      "2": [
+        "B"
+      ],
+      "3": [
+        "B",
+        "C",
+        "D"
+      ],
+      "4": [
+        "C"
+      ],
+      "5": [
+        "B"
+      ],
+      "6": [
+        "C"
+      ],
+      "7": [
+        "B"
+      ],
+      "8": [
+        "A"
+      ],
+      "9": [
+        "C"
+      ],
+      "10": [
+        "A"
+      ],
+      "11": [
+        "B"
+      ],
+      "12": [
+        "A"
+      ],
+      "15": [
+        "A"
+      ],
+      "16": [
+        "B"
+      ],
+      "17": [
+        "B"
+      ],
+      "18": [
+        "B"
+      ],
+      "19": [
+        "B"
+      ],
+      "20": [
+        "A",
+        "C"
+      ]
+    }
+  },
+  "Comptabilite/rattrapage_2025.json": {
+    "status": "incomplete",
+    "answers": {
+      "1": [
+        "D"
+      ]
+    }
+  },
+  "Comptabilite/exercice-rattrapage-compta.json": {
+    "status": "incomplete",
+    "answers": {
+      "1": [
+        "B"
+      ],
+      "13": [
+        "C"
+      ],
+      "14": [
+        "B"
+      ],
+      "15": [
+        "C"
+      ],
+      "16": [
+        "C"
+      ],
+      "17": [
+        "A"
+      ],
+      "18": [
+        "B"
+      ],
+      "19": [
+        "C"
+      ],
+      "20": [
+        "C"
+      ],
+      "21": [
+        "B"
       ]
     }
   }
